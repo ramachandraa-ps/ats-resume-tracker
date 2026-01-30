@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebase';
 
 interface LoginProps {
     onNavigate: (view: 'APP' | 'LOGIN' | 'SIGNUP') => void;
@@ -10,14 +12,18 @@ const Login: React.FC<LoginProps> = ({ onNavigate, onLoginSuccess }) => {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-        // Simulate login delay
-        setTimeout(() => {
-            setIsLoading(false);
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
             onLoginSuccess();
-        }, 1500);
+        } catch (error: any) {
+            console.error(error);
+            alert(error.message || "Failed to login");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (

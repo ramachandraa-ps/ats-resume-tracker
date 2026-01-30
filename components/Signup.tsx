@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebase';
 
 interface SignupProps {
     onNavigate: (view: 'APP' | 'LOGIN' | 'SIGNUP') => void;
@@ -12,18 +14,28 @@ const Signup: React.FC<SignupProps> = ({ onNavigate, onSignupSuccess }) => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (password !== confirmPassword) {
             alert("Passwords do not match");
             return;
         }
         setIsLoading(true);
-        // Simulate signup
-        setTimeout(() => {
-            setIsLoading(false);
+
+        try {
+            await createUserWithEmailAndPassword(auth, email, password);
+            // Provide visual feedback or optional delay if needed, 
+            // but usually we proceed immediately. 
+            // Keeping a small delay for better UX if desired, or removing it.
             onSignupSuccess();
-        }, 1500);
+        } catch (error: any) {
+            console.error(error);
+            alert(error.message || "Failed to create account");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
