@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -7,8 +7,26 @@ const Login: React.FC = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const { login } = useAuth();
+    const { login, isAuthenticated, loading: authLoading } = useAuth();
     const navigate = useNavigate();
+
+    // Redirect if already authenticated
+    useEffect(() => {
+        if (!authLoading && isAuthenticated) {
+            navigate('/', { replace: true });
+        }
+    }, [isAuthenticated, authLoading, navigate]);
+
+    const getErrorMessage = (code: string): string => {
+        const messages: Record<string, string> = {
+            'auth/user-not-found': 'No account found with this email',
+            'auth/wrong-password': 'Incorrect password',
+            'auth/invalid-credential': 'Invalid email or password',
+            'auth/invalid-email': 'Please enter a valid email address',
+            'auth/network-request-failed': 'Network error. Please check your connection',
+        };
+        return messages[code] || 'Failed to login. Please try again.';
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -19,11 +37,20 @@ const Login: React.FC = () => {
             navigate('/');
         } catch (error: any) {
             console.error(error);
-            setError(error.message || "Failed to login");
+            setError(getErrorMessage(error.code));
         } finally {
             setIsLoading(false);
         }
     };
+
+    // Show loading while checking auth state
+    if (authLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in-up py-12">

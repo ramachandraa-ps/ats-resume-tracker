@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -9,8 +9,26 @@ const Signup: React.FC = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const { signup } = useAuth();
+    const { signup, isAuthenticated, loading: authLoading } = useAuth();
     const navigate = useNavigate();
+
+    // Redirect if already authenticated
+    useEffect(() => {
+        if (!authLoading && isAuthenticated) {
+            navigate('/', { replace: true });
+        }
+    }, [isAuthenticated, authLoading, navigate]);
+
+    const getErrorMessage = (code: string): string => {
+        const messages: Record<string, string> = {
+            'auth/email-already-in-use': 'An account with this email already exists',
+            'auth/invalid-email': 'Please enter a valid email address',
+            'auth/weak-password': 'Password must be at least 6 characters',
+            'auth/operation-not-allowed': 'Email/password accounts are not enabled',
+            'auth/network-request-failed': 'Network error. Please check your connection',
+        };
+        return messages[code] || 'Failed to create account. Please try again.';
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -27,11 +45,20 @@ const Signup: React.FC = () => {
             navigate('/');
         } catch (error: any) {
             console.error(error);
-            setError(error.message || "Failed to create account");
+            setError(getErrorMessage(error.code));
         } finally {
             setIsLoading(false);
         }
     };
+
+    // Show loading while checking auth state
+    if (authLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in-up py-12">
