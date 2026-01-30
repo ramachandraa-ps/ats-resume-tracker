@@ -1,38 +1,33 @@
 import React, { useState } from 'react';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
-interface SignupProps {
-    onNavigate: (view: 'APP' | 'LOGIN' | 'SIGNUP') => void;
-    onSignupSuccess: () => void;
-}
-
-const Signup: React.FC<SignupProps> = ({ onNavigate, onSignupSuccess }) => {
+const Signup: React.FC = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-
-
+    const { signup } = useAuth();
+    const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError('');
         if (password !== confirmPassword) {
-            alert("Passwords do not match");
+            setError("Passwords do not match");
             return;
         }
         setIsLoading(true);
 
         try {
-            await createUserWithEmailAndPassword(auth, email, password);
-            // Provide visual feedback or optional delay if needed, 
-            // but usually we proceed immediately. 
-            // Keeping a small delay for better UX if desired, or removing it.
-            onSignupSuccess();
+            // Passing name as additional data
+            await signup(email, password, { name });
+            navigate('/');
         } catch (error: any) {
             console.error(error);
-            alert(error.message || "Failed to create account");
+            setError(error.message || "Failed to create account");
         } finally {
             setIsLoading(false);
         }
@@ -44,6 +39,7 @@ const Signup: React.FC<SignupProps> = ({ onNavigate, onSignupSuccess }) => {
                 <div className="p-8">
                     <h2 className="text-3xl font-extrabold text-slate-900 text-center mb-2">Create Account</h2>
                     <p className="text-center text-slate-500 mb-8">Join thousands of job seekers</p>
+                    {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">{error}</div>}
 
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div>
@@ -110,12 +106,12 @@ const Signup: React.FC<SignupProps> = ({ onNavigate, onSignupSuccess }) => {
                 <div className="bg-slate-50 px-8 py-4 border-t border-slate-100 text-center">
                     <p className="text-sm text-slate-600">
                         Already have an account?{' '}
-                        <button
-                            onClick={() => onNavigate('LOGIN')}
+                        <Link
+                            to="/login"
                             className="text-blue-600 font-semibold hover:text-blue-700 transition-colors"
                         >
                             Log in
-                        </button>
+                        </Link>
                     </p>
                 </div>
             </div>

@@ -1,26 +1,25 @@
 import React, { useState } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
-interface LoginProps {
-    onNavigate: (view: 'APP' | 'LOGIN' | 'SIGNUP') => void;
-    onLoginSuccess: () => void;
-}
-
-const Login: React.FC<LoginProps> = ({ onNavigate, onLoginSuccess }) => {
+const Login: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const { login } = useAuth();
+    const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
+        setError('');
         try {
-            await signInWithEmailAndPassword(auth, email, password);
-            onLoginSuccess();
+            await login(email, password);
+            navigate('/');
         } catch (error: any) {
             console.error(error);
-            alert(error.message || "Failed to login");
+            setError(error.message || "Failed to login");
         } finally {
             setIsLoading(false);
         }
@@ -32,6 +31,7 @@ const Login: React.FC<LoginProps> = ({ onNavigate, onLoginSuccess }) => {
                 <div className="p-8">
                     <h2 className="text-3xl font-extrabold text-slate-900 text-center mb-2">Welcome Back</h2>
                     <p className="text-center text-slate-500 mb-8">Sign in to continue to ATS Checker</p>
+                    {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">{error}</div>}
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
@@ -74,12 +74,12 @@ const Login: React.FC<LoginProps> = ({ onNavigate, onLoginSuccess }) => {
                 <div className="bg-slate-50 px-8 py-4 border-t border-slate-100 text-center">
                     <p className="text-sm text-slate-600">
                         Don't have an account?{' '}
-                        <button
-                            onClick={() => onNavigate('SIGNUP')}
+                        <Link
+                            to="/signup"
                             className="text-blue-600 font-semibold hover:text-blue-700 transition-colors"
                         >
                             Sign up
-                        </button>
+                        </Link>
                     </p>
                 </div>
             </div>
