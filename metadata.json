@@ -1,0 +1,5 @@
+{
+  "name": "ATS Resume Analyzer",
+  "description": "An educational tool for students to analyze their resumes against common ATS algorithms, providing explainable scores and actionable feedback.",
+  "requestFramePermissions": []
+}
